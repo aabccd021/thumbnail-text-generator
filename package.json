@@ -1,0 +1,36 @@
+{
+  "name": "thumbnail-generator",
+  "version": "0.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@microsoft/eslint-plugin-sdl": "github:microsoft/eslint-plugin-sdl",
+    "@stylistic/eslint-plugin": "^1.5.3",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "eslint": "^8.56.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "eslint:recommended",
+      "plugin:@microsoft/sdl/common",
+      "plugin:@microsoft/sdl/recommended",
+      "plugin:@microsoft/sdl/required",
+      "plugin:@microsoft/sdl/typescript",
+      "plugin:@microsoft/sdl/node",
+      "plugin:@stylistic/recommended-extends",
+      "plugin:@typescript-eslint/strict-type-checked"
+    ],
+    "parserOptions": {
+      "project": [
+        "./tsconfig.json"
+      ]
+    },
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint",
+      "@stylistic"
+    ],
+    "root": true
+  }
+}
