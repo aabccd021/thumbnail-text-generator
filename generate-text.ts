@@ -103,8 +103,8 @@ async function generateStrokes(
   for (const stroke of restStrokes) {
     const innerStrokePng = await generateStroke(fontPath, text, stroke)
     strokePng = await layerImages({
-      fg: strokePng,
-      bg: innerStrokePng,
+      bg: strokePng,
+      fg: innerStrokePng,
       flags: '-gravity center -colorspace sRGB',
     })
   }

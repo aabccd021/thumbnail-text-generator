@@ -1,6 +1,5 @@
-// take input of the form and send it to the server
-// get the response from the server and display it on the page
-//
+let stokeCount = 0
+
 async function formHandler(event: SubmitEvent) {
   event.preventDefault()
 
@@ -13,11 +12,32 @@ async function formHandler(event: SubmitEvent) {
 
   console.log(JSON.stringify(formData))
 
+  const strokes: Stroke[] = Array.from(Array(stokeCount).keys()).map((i) => {
+    const strokeColorInputEl = document.getElementById(`stroke-color-${i}`)
+    if (!(strokeColorInputEl instanceof HTMLInputElement)) {
+      console.error(strokeColorInputEl)
+      throw new Error(`strokeColorInputEl is not HTMLInputElement: ${JSON.stringify(strokeColorInputEl)}`)
+    }
+    const strokeColor = strokeColorInputEl.value
+
+    const strokeWidthInputEl = document.getElementById(`stroke-width-${i}`)
+    if (!(strokeWidthInputEl instanceof HTMLInputElement)) {
+      console.error(strokeWidthInputEl)
+      throw new Error(`strokeWidthInputEl is not HTMLInputElement: ${JSON.stringify(strokeWidthInputEl)}`)
+    }
+    const strokeWidth = parseInt(strokeWidthInputEl.value, 10)
+
+    return {
+      color: strokeColor,
+      width: strokeWidth,
+    }
+  })
+
   const data = {
     font: formData.get('font'),
     text: formData.get('text'),
     fill: formData.get('fill'),
-    strokes: [],
+    strokes: strokes,
   }
 
   const result = await fetch('/generate-text', {
@@ -41,6 +61,36 @@ async function formHandler(event: SubmitEvent) {
   img.setAttribute('src', generateResult)
 }
 
-document.getElementById('form')?.addEventListener('submit', (event) => {
+const formEl = document.getElementById('form')
+if (!(formEl instanceof HTMLFormElement)) {
+  console.error(formEl)
+  throw new Error(`formEl is not HTMLFormElement`)
+}
+
+// button
+const addStrokeEl = document.getElementById('add-stroke')
+if (!(addStrokeEl instanceof HTMLButtonElement)) {
+  console.error(addStrokeEl)
+  throw new Error(`addStrokeEl is not HTMLButtonElement`)
+}
+
+formEl.addEventListener('submit', (event) => {
   void formHandler(event)
+})
+
+// append stroke input element to the form
+addStrokeEl.addEventListener('click', () => {
+  const strokeColorInputEl = document.createElement('input')
+  strokeColorInputEl.setAttribute('type', 'text')
+  strokeColorInputEl.setAttribute('id', `stroke-color-${stokeCount}`)
+  strokeColorInputEl.setAttribute('value', 'black')
+  formEl.appendChild(strokeColorInputEl)
+
+  const strokeWidthInputEl = document.createElement('input')
+  strokeWidthInputEl.setAttribute('type', 'text')
+  strokeWidthInputEl.setAttribute('id', `stroke-width-${stokeCount}`)
+  strokeWidthInputEl.setAttribute('value', '2')
+  formEl.appendChild(strokeWidthInputEl)
+
+  stokeCount++
 })

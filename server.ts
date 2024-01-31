@@ -31,6 +31,7 @@ const getPostBody = async (req: http.IncomingMessage) => {
 
 const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   console.log(req.url)
+  // eslint-disable-next-line @microsoft/sdl/no-insecure-url
   const url = new URL(req.url ?? '', `http://${req.headers.host}`)
   if (url.pathname === '/' && req.method === 'GET') {
     const fontsAvailable = await fs.promises.readdir(fontsDir)
@@ -46,16 +47,9 @@ const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse
     res.end()
     return
   }
-  if (url.pathname === '/fs-files' && req.method === 'GET') {
-    const searchParams = new URLSearchParams(url.search)
-    const path = searchParams.get('path')
-    if (!path) {
-      res.writeHead(400, { 'Content-Type': 'text/plain' })
-      res.write('400 Bad Request')
-      res.end()
-      return
-    }
-    const data = await fs.promises.readFile(path)
+  if (url.pathname.startsWith('/fs-files') && req.method === 'GET') {
+    const fsPath = url.pathname.replace('/fs-files', '')
+    const data = await fs.promises.readFile(fsPath)
     res.writeHead(200, { 'Content-Type': 'application/octet-stream' })
     res.write(data)
     res.end()
@@ -71,7 +65,7 @@ const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse
       fontPath: `${fontsDir}/${params.font}`,
     }
     const filePath = await generateTitle(titleArgsValue)
-    const fileUrl = `/fs-files?path=${filePath}`
+    const fileUrl = `/fs-files${filePath}`
 
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.write(JSON.stringify(fileUrl))

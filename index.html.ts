@@ -38,6 +38,10 @@ export const indexHtml = (fontsAvailable: string[]) => {
       button {
         margin-top: 1em;
       }
+      img {
+        margin-top: 1em;
+        max-width: 100%;
+      }
     </style>
 </head>
 <body>
@@ -48,11 +52,12 @@ export const indexHtml = (fontsAvailable: string[]) => {
       <label for="text">text</label>
       <input id="text" name="text" type="text" value="hello world">
       <label for="fill">fill</label>
-      <input id="fill" name="fill" type="text" value="white">
+      <input id="fill" name="fill" type="text" value="red">
       <label for="strokes">strokes</label>
       <input id="strokes" name="strokes" type="text" value='[{"color":"black","width":2}]'>
       <button type="submit">submit</button>
     </form>
+    <button id="add-stroke">add stroke</button>
     <img id="result" src="" alt="result" />
 </body>
 <script src="/client.js"></script>
