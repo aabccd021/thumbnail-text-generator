@@ -2,6 +2,7 @@ import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
 import * as util from 'node:util'
 import * as childProcess from 'node:child_process'
+import { Stroke } from './utils'
 
 const execPromise = util.promisify(childProcess.exec)
 
@@ -75,11 +76,6 @@ function layerImages(args: {
     .join(' ')
 
   return cachedExec('layerImages', 'png', cmd)
-}
-
-type Stroke = {
-  color: string
-  width: number
 }
 
 type TitleArgs = {

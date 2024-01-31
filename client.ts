@@ -1,3 +1,5 @@
+import { RequestBody, Stroke } from './utils'
+
 let stokeCount = 0
 
 async function formHandler(event: SubmitEvent) {
@@ -33,12 +35,25 @@ async function formHandler(event: SubmitEvent) {
     }
   })
 
-  const data = {
-    font: formData.get('font'),
-    text: formData.get('text'),
-    fill: formData.get('fill'),
-    strokes: strokes,
+  const font = formData.get('font')
+  if (typeof font !== 'string') {
+    console.error(font)
+    throw new Error(`font is not string: ${JSON.stringify(font)}`)
   }
+
+  const text = formData.get('text')
+  if (typeof text !== 'string') {
+    console.error(text)
+    throw new Error(`text is not string: ${JSON.stringify(text)}`)
+  }
+
+  const fill = formData.get('fill')
+  if (typeof fill !== 'string') {
+    console.error(fill)
+    throw new Error(`fill is not string: ${JSON.stringify(fill)}`)
+  }
+
+  const data: RequestBody = { font, text, fill, strokes }
 
   const result = await fetch('/generate-text', {
     method: 'POST',

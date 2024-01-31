@@ -2,20 +2,10 @@ import * as http from 'node:http'
 import * as fs from 'node:fs'
 import { generateTitle } from './generate-text'
 import { indexHtml } from './index.html'
-import * as b from 'banditypes'
+import { requestBody } from './utils'
 
 const assetsDir = new URL('./assets', import.meta.url).toString().replace('file://', '')
 const fontsDir = `${assetsDir}/fonts`
-
-const generateTextParams = b.object({
-  font: b.string(),
-  text: b.string(),
-  fill: b.string(),
-  strokes: b.array(b.object({
-    color: b.string(),
-    width: b.number(),
-  })),
-})
 
 const getPostBody = async (req: http.IncomingMessage) => {
   const chunks: Uint8Array[] = []
@@ -59,7 +49,7 @@ const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse
   if (url.pathname === '/generate-text' && req.method === 'POST') {
     const bodyStr = await getPostBody(req)
     const bodyJson: unknown = JSON.parse(bodyStr)
-    const params = generateTextParams(bodyJson)
+    const params = requestBody(bodyJson)
     const titleArgsValue = {
       ...params,
       fontPath: `${fontsDir}/${params.font}`,
