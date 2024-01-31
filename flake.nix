@@ -19,6 +19,13 @@
         ];
       };
 
+      cliSrc = filter {
+        root = ./.;
+        include = [
+          "cli.ts"
+        ];
+      };
+
       nodeModules = buildNpmPackage {
         name = "scripts";
         src = filter { root = ./.; include = [ "package.json" "package-lock.json" ]; };
@@ -74,7 +81,6 @@
           --bundle \
           --outfile=$out/assets/client.js
       '';
-
 
       mkApp = { runPhase }: {
         type = "app";
@@ -158,6 +164,31 @@
             "${nodejs_20}/bin/node --watch $out/server.mjs" \
         '';
       };
+
+      apps.x86_64-linux.dev-cli = mkApp {
+        runPhase = ''
+          out=$(mktemp -d)
+
+          cp ${cliSrc}/* $out
+
+          mkdir -p $out/assets/fonts
+          cp ${zenAntique} $out/assets/fonts/zenantique.ttf
+          cp ${delaGothicOne} $out/assets/fonts/delagothicone.ttf
+          cp ${rocknRollOne} $out/assets/fonts/rocknrollone.ttf
+
+          ${concurrently}/bin/concurrently \
+            --names "cli-build,cli-run" \
+            "${esbuild}/bin/esbuild \
+              ./cli.ts \
+              --platform=node \
+              --format=esm \
+              --bundle \
+              --watch=forever \
+              --outfile=$out/cli.mjs" \
+            "${nodejs_20}/bin/node --watch $out/cli.mjs" \
+        '';
+      };
+
 
     };
 }
