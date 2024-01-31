@@ -19,13 +19,6 @@
         ];
       };
 
-      cliSrc = filter {
-        root = ./.;
-        include = [
-          "cli.ts"
-        ];
-      };
-
       nodeModules = buildNpmPackage {
         name = "scripts";
         src = filter { root = ./.; include = [ "package.json" "package-lock.json" ]; };
@@ -168,8 +161,6 @@
       apps.x86_64-linux.dev-cli = mkApp {
         runPhase = ''
           out=$(mktemp -d)
-
-          cp ${cliSrc}/* $out
 
           mkdir -p $out/assets/fonts
           cp ${zenAntique} $out/assets/fonts/zenantique.ttf

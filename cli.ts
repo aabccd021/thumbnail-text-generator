@@ -8,8 +8,15 @@ const fontsDir = `${assetsDir}/fonts`
 const main = async () => {
   const tmpDir = await fs.promises.mkdtemp('/tmp/thumbnail-generator-cli-')
   const inputJsonPath = `${tmpDir}/input.json`
-  await fs.promises.writeFile(inputJsonPath, JSON.stringify({}))
+  await fs.promises.writeFile(inputJsonPath, JSON.stringify({
+    font: 'zenantique.ttf',
+    text: 'foo',
+    fill: 'red',
+    strokes: [],
+  }, null, 2))
   const watcher = fs.promises.watch(inputJsonPath)
+  console.log(`Watching ${inputJsonPath}`)
+  let alreadyOpened = false
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   for await (const _event of watcher) {
     try {
@@ -21,7 +28,10 @@ const main = async () => {
         fontPath: `${fontsDir}/${request.font}`,
       }
       const generateResultPath = await generateTitle(generateParams)
-      await fs.promises.rename(generateResultPath, '/home/aabccd021/tmp/out.png')
+      await fs.promises.copyFile(generateResultPath, `${tmpDir}/output.png`)
+      if (!alreadyOpened) {
+        alreadyOpened = true
+      }
     }
     catch (e) {
       console.error(e)
