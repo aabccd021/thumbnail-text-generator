@@ -44,10 +44,7 @@
       };
 
       staticAssets = runCommand "staticAssets" { } ''
-        mkdir -p $out
-        cp ${zenAntique} $out/zenantique.ttf
-        cp ${delaGothicOne} $out/delagothicone.ttf
-        cp ${rocknRollOne} $out/rocknrollone.ttf
+        mkdir -p $out/fonts
       '';
 
       thumbnailGenerator = runCommand "thumbnailGenerator" { } ''
@@ -63,7 +60,11 @@
           --outfile=$out/server.mjs
 
         mkdir -p $out/assets
-        cp -r ${staticAssets}/* $out/assets
+
+        mkdir -p $out/assets/fonts
+        cp ${zenAntique} $out/assets/fonts/zenantique.ttf
+        cp ${delaGothicOne} $out/assets/fonts/delagothicone.ttf
+        cp ${rocknRollOne} $out/assets/fonts/rocknrollone.ttf
 
         ${esbuild}/bin/esbuild \
           ./client.ts \

@@ -2,7 +2,6 @@ import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
 import * as util from 'node:util'
 import * as childProcess from 'node:child_process'
-import * as b from 'banditypes'
 
 const execPromise = util.promisify(childProcess.exec)
 
@@ -26,17 +25,14 @@ async function cachedExec(key: string, extension: string, cmd: string): Promise<
 }
 
 function generateStroke(fontPath: string, text: string, strokeParam: Stroke) {
-  const strokeColorArg = strokeParam.color ? `-stroke ${strokeParam.color}` : ''
-  const strokeWidthArg = strokeParam.width ? `-strokewidth ${strokeParam.width}` : ''
-
   const cmd = [
     'convert',
     `-font "${fontPath}"`,
     '-background none',
     `-pointsize 200`,
     '-kerning -25',
-    strokeColorArg,
-    strokeWidthArg,
+    `-stroke ${strokeParam.color}`,
+    `-strokewidth ${strokeParam.width}`,
     '-gravity Center',
     `label:"${text}"`,
   ]
@@ -46,13 +42,11 @@ function generateStroke(fontPath: string, text: string, strokeParam: Stroke) {
   return cachedExec('generateStroke', 'png', cmd)
 }
 
-function generateInnerText(fontPath: string, text: string, fill?: string | undefined) {
-  const fillColor = fill ?? 'red'
-
+function generateInnerText(fontPath: string, text: string, fill: string) {
   const cmd = [
     'convert',
     `-font "${fontPath}"`,
-    `-fill "${fillColor}"`,
+    `-fill "${fill}"`,
     '-background none',
     `-pointsize 200`,
     '-kerning -25',
@@ -83,30 +77,23 @@ function layerImages(args: {
   return cachedExec('layerImages', 'png', cmd)
 }
 
-const stroke = b.object({
-  color: b.string(),
-  width: b.number(),
-})
+type Stroke = {
+  color: string
+  width: number
+}
 
-export const titleArgs = b.object({
-  fontPath: b.string(),
-  text: b.string(),
-  fill: b.string().or(b.optional()),
-  strokes: b.array(stroke).or(b.optional()),
-})
-
-type Stroke = b.Infer<typeof stroke>
-
-export type TitleArgs = b.Infer<typeof titleArgs>
+type TitleArgs = {
+  fontPath: string
+  text: string
+  fill: string
+  strokes: Stroke[]
+}
 
 async function generateStrokes(
   fontPath: string,
   text: string,
-  strokes?: Stroke[]
+  strokes: Stroke[]
 ): Promise<string | undefined> {
-  if (strokes === undefined) {
-    return undefined
-  }
   const reversedStrokes = strokes.toReversed()
   const [outmostStroke, ...restStrokes] = reversedStrokes
   if (outmostStroke === undefined) {

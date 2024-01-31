@@ -1,8 +1,8 @@
 {
   "include": ["./**/*.ts"],
   "compilerOptions": {
-    "lib": ["esnext"],
-    "types": ["@types/node", "dom"],
+    "lib": ["esnext", "dom"],
+    "types": ["@types/node"],
     "module": "esnext",
     "moduleResolution": "bundler",
     "strict": true,

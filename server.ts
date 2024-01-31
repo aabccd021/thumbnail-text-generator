@@ -1,9 +1,21 @@
 import * as http from 'node:http'
 import * as fs from 'node:fs'
-import { generateTitle, titleArgs } from './generate-text'
+import { generateTitle } from './generate-text'
 import { indexHtml } from './index.html'
+import * as b from 'banditypes'
 
 const assetsDir = new URL('./assets', import.meta.url).toString().replace('file://', '')
+const fontsDir = `${assetsDir}/fonts`
+
+const generateTextParams = b.object({
+  font: b.string(),
+  text: b.string(),
+  fill: b.string(),
+  strokes: b.array(b.object({
+    color: b.string(),
+    width: b.number(),
+  })),
+})
 
 const getPostBody = async (req: http.IncomingMessage) => {
   const chunks: Uint8Array[] = []
@@ -18,26 +30,51 @@ const getPostBody = async (req: http.IncomingMessage) => {
 }
 
 const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse) => {
-  if (req.url === '/') {
+  console.log(req.url)
+  const url = new URL(req.url ?? '', `http://${req.headers.host}`)
+  if (url.pathname === '/' && req.method === 'GET') {
+    const fontsAvailable = await fs.promises.readdir(fontsDir)
     res.writeHead(200, { 'Content-Type': 'text/html' })
-    res.write(indexHtml)
+    res.write(indexHtml(fontsAvailable))
     res.end()
     return
   }
-  if (req.url === '/client.js') {
+  if (url.pathname === '/client.js' && req.method === 'GET') {
     const data = await fs.promises.readFile(`${assetsDir}/client.js`, 'utf-8')
     res.writeHead(200, { 'Content-Type': 'text/javascript' })
     res.write(data)
     res.end()
     return
   }
-  if (req.url === '/generate-text' && req.method === 'POST') {
+  if (url.pathname === '/fs-files' && req.method === 'GET') {
+    const searchParams = new URLSearchParams(url.search)
+    const path = searchParams.get('path')
+    if (!path) {
+      res.writeHead(400, { 'Content-Type': 'text/plain' })
+      res.write('400 Bad Request')
+      res.end()
+      return
+    }
+    const data = await fs.promises.readFile(path)
+    res.writeHead(200, { 'Content-Type': 'application/octet-stream' })
+    res.write(data)
+    res.end()
+    return
+  }
+
+  if (url.pathname === '/generate-text' && req.method === 'POST') {
     const bodyStr = await getPostBody(req)
     const bodyJson: unknown = JSON.parse(bodyStr)
-    const titleArgsValue = titleArgs(bodyJson)
-    const data = await generateTitle(titleArgsValue)
+    const params = generateTextParams(bodyJson)
+    const titleArgsValue = {
+      ...params,
+      fontPath: `${fontsDir}/${params.font}`,
+    }
+    const filePath = await generateTitle(titleArgsValue)
+    const fileUrl = `/fs-files?path=${filePath}`
+
     res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.write(data)
+    res.write(JSON.stringify(fileUrl))
     res.end()
     return
   }
