@@ -9,7 +9,15 @@
 
       filter = inputs.nix-filter.lib;
 
-      src = filter { root = ./.; include = [ "server.ts" "client.ts"]; };
+      src = filter {
+        root = ./.;
+        include = [
+          "server.ts"
+          "index.html.ts"
+          "generate-text.ts"
+          "client.ts"
+        ];
+      };
 
       nodeModules = buildNpmPackage {
         name = "scripts";
@@ -34,7 +42,7 @@
         url = "https://github.com/google/fonts/raw/main/ofl/rocknrollone/RocknRollOne-Regular.ttf";
         hash = "sha256-3A9f+XWFGCf2Pyxr/tEo/7yhS2OZoQ+14XESFcAQhSY=";
       };
-      
+
       staticAssets = runCommand "staticAssets" { } ''
         mkdir -p $out
         cp ${zenAntique} $out/zenantique.ttf

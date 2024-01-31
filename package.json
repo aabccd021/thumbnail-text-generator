@@ -32,5 +32,8 @@
       "@stylistic"
     ],
     "root": true
+  },
+  "dependencies": {
+    "banditypes": "^0.2.5"
   }
 }

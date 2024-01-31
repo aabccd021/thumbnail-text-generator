@@ -1,34 +1,21 @@
 import * as http from 'node:http'
 import * as fs from 'node:fs'
+import { generateTitle, titleArgs } from './generate-text'
+import { indexHtml } from './index.html'
 
 const assetsDir = new URL('./assets', import.meta.url).toString().replace('file://', '')
 
-const html = (strings: TemplateStringsArray, ...values: string[]) => {
-  const raw = strings.raw
-  let result = ''
-  for (let i = 0; i < raw.length; i++) {
-    result += raw[i]
-    if (i < values.length) {
-      result += values[i]
+const getPostBody = async (req: http.IncomingMessage) => {
+  const chunks: Uint8Array[] = []
+  for await (const chunk of req) {
+    if (!(chunk instanceof Uint8Array)) {
+      throw new Error(`chunk is not Uint8Array: ${chunk}`)
     }
+    chunks.push(chunk)
   }
-  return result
+  const body: string = Buffer.concat(chunks).toString()
+  return body
 }
-
-const indexHtml = html`
-<!-- hello world -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>hello world</title>
-</head>
-<body>
-    <h1>hello worl</h1>
-</body>
-<script src="/client.js"></script>
-</html>
-`
 
 const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse) => {
   if (req.url === '/') {
@@ -40,6 +27,16 @@ const serverHandler = async (req: http.IncomingMessage, res: http.ServerResponse
   if (req.url === '/client.js') {
     const data = await fs.promises.readFile(`${assetsDir}/client.js`, 'utf-8')
     res.writeHead(200, { 'Content-Type': 'text/javascript' })
+    res.write(data)
+    res.end()
+    return
+  }
+  if (req.url === '/generate-text' && req.method === 'POST') {
+    const bodyStr = await getPostBody(req)
+    const bodyJson: unknown = JSON.parse(bodyStr)
+    const titleArgsValue = titleArgs(bodyJson)
+    const data = await generateTitle(titleArgsValue)
+    res.writeHead(200, { 'Content-Type': 'application/json' })
     res.write(data)
     res.end()
     return
