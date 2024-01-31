@@ -1,7 +1,12 @@
-import * as b from 'banditypes'
+import * as b from 'zod'
 
 export const requestBody = b.object({
-  font: b.string(),
+  $schema: b.string().optional(),
+  font: b.enum([
+    'zenantique.ttf',
+    'delagothicone.ttf',
+    'rocknrollone.ttf',
+  ]),
   text: b.string(),
   fill: b.string(),
   strokes: b.array(b.object({
@@ -10,7 +15,7 @@ export const requestBody = b.object({
   })),
 })
 
-export type RequestBody = b.Infer<typeof requestBody>
+export type RequestBody = b.infer<typeof requestBody>
 
 export type Stroke = {
   color: string

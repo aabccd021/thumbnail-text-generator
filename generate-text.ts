@@ -17,7 +17,9 @@ async function cachedExec(key: string, extension: string, cmd: string): Promise<
   const outPath = `/tmp/cache-${hash}.${extension}`
   const fullCmd = `${cmd} ${outPath}`
   console.log(`Executing: ${fullCmd}`)
-  await execPromise(fullCmd)
+  const result = await execPromise(fullCmd)
+  console.log(result.stdout)
+  console.log(result.stderr)
   if (!fs.existsSync(outPath)) {
     throw new Error(`outPath is empty for key: ${key} on ${outPath}`)
   }
@@ -34,7 +36,7 @@ function generateStroke(fontPath: string, text: string, strokeParam: Stroke) {
     '-kerning -25',
     `-stroke ${strokeParam.color}`,
     `-strokewidth ${strokeParam.width}`,
-    '-gravity Center',
+    '-gravity center',
     `label:"${text}"`,
   ]
     .filter(arg => arg !== '')
@@ -51,7 +53,7 @@ function generateInnerText(fontPath: string, text: string, fill: string) {
     '-background none',
     `-pointsize 200`,
     '-kerning -25',
-    '-gravity Center',
+    '-gravity center',
     `label:"${text}"`,
   ]
     .filter(arg => arg !== '')

@@ -19,6 +19,16 @@
         ];
       };
 
+      cliSrc = filter {
+        root = ./.;
+        include = [
+          "cli.ts"
+          "generate-text.ts"
+          "utils.ts"
+        ];
+      };
+
+
       nodeModules = buildNpmPackage {
         name = "scripts";
         src = filter { root = ./.; include = [ "package.json" "package-lock.json" ]; };
@@ -75,6 +85,25 @@
           --outfile=$out/assets/client.js
       '';
 
+      cli = runCommand "cli" {} ''
+        cp -r ${cliSrc}/* .
+        cp -r ${nodeModules}/node_modules ./node_modules
+
+        mkdir -p $out/assets/fonts
+        cp ${zenAntique} $out/assets/fonts/zenantique.ttf
+        cp ${delaGothicOne} $out/assets/fonts/delagothicone.ttf
+        cp ${rocknRollOne} $out/assets/fonts/rocknrollone.ttf
+
+        ${esbuild}/bin/esbuild \
+          ./cli.ts \
+          --platform=node \
+          --format=esm \
+          --bundle \
+          --banner:js="#!${nodejs_20}/bin/node" \
+          --outfile=$out/bin/generate-thumbnail.mjs
+        chmod +x $out/bin/generate-thumbnail.mjs
+      '';
+
       mkApp = { runPhase }: {
         type = "app";
         program = toString (writeShellScript "app" ''
@@ -102,9 +131,10 @@
         ];
       };
 
-      apps.x86_64-linux.thumbnail-generator = {
-        type = "app";
-        program = "${thumbnailGenerator}/bin/server.mjs";
+      apps.x86_64-linux.thumbnail-generator = mkApp {
+        runPhase = ''
+          echo "/home/aabccd021/tmp/input.json" | ${entr}/bin/entr ${cli}/bin/generate-thumbnail.mjs
+        '';
       };
 
 
@@ -122,11 +152,6 @@
           rm -rf ./node_modules || true
           cp -r ./result/node_modules .
           chmod -R 777 ./node_modules
-          cd ../..
-
-          nix build -L .#client.devJs
-          cp ./result/import-map.gen.json ./packages/server
-
         '';
       };
 
