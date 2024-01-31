@@ -24,7 +24,7 @@ const indexHtml = html`
     <title>hello world</title>
 </head>
 <body>
-    <h1>hello world</h1>
+    <h1>hello worl</h1>
 </body>
 <script src="/client.js"></script>
 </html>

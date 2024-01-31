@@ -131,7 +131,7 @@
 
           ${concurrently}/bin/concurrently \
             --names "server-build,client-build,server-run" \
-            "${esbuild}/bin/esbuild 
+            "${esbuild}/bin/esbuild \
               ./server.ts \
               --platform=node \
               --format=esm \
