@@ -31,6 +31,7 @@ function generateStroke(args: {
   fontPath: string
   text: string
   stroke: Stroke
+  interlineSpacing: string
   vertical?: true
 }) {
   const cmd = [
@@ -40,7 +41,7 @@ function generateStroke(args: {
     '-fill none',
     `-pointsize 200`,
     '-kerning -25',
-    '-interline-spacing -100',
+    `-interline-spacing ${args.interlineSpacing}`,
     `-stroke ${args.stroke.color}`,
     `-strokewidth ${args.stroke.width}`,
     '-gravity center',
@@ -56,6 +57,7 @@ function generateInnerText(args: {
   fontPath: string
   text: string
   fill: string
+  interlineSpacing: string
 }) {
   const cmd = [
     'convert',
@@ -64,7 +66,7 @@ function generateInnerText(args: {
     '-background none',
     `-pointsize 200`,
     '-kerning -25',
-    '-interline-spacing -100',
+    `-interline-spacing ${args.interlineSpacing}`,
     '-gravity center',
     `label:"${args.text}"`,
   ]
@@ -98,21 +100,25 @@ type TitleArgs = {
   fill: string
   vertical?: boolean | undefined
   strokes: Stroke[]
+  interlineSpacing?: string
 }
 
 async function generateStrokes(
-  fontPath: string,
-  text: string,
-  strokes: Stroke[]
+  args: {
+    fontPath: string
+    text: string
+    strokes: Stroke[]
+    interlineSpacing: string
+  }
 ): Promise<string | undefined> {
-  const reversedStrokes = strokes.toReversed()
+  const reversedStrokes = args.strokes.toReversed()
   const [outmostStroke, ...restStrokes] = reversedStrokes
   if (outmostStroke === undefined) {
     return undefined
   }
-  let strokePng = await generateStroke({ fontPath, text, stroke: outmostStroke })
+  let strokePng = await generateStroke({ ...args, stroke: outmostStroke })
   for (const stroke of restStrokes) {
-    const innerStrokePng = await generateStroke({ fontPath, text, stroke })
+    const innerStrokePng = await generateStroke({ ...args, stroke })
     strokePng = await layerImages({
       bg: strokePng,
       fg: innerStrokePng,
@@ -123,11 +129,11 @@ async function generateStrokes(
 }
 
 export async function generateTitle(args: TitleArgs) {
-  const { fontPath, text, fill, strokes, vertical } = args
-  const directedText = vertical === true ? text.split('').join('\n') : text
+  const directedText = args.vertical === true ? args.text.split('').join('\n') : args.text
+  const interlineSpacing = args.interlineSpacing ?? '-100'
   const [innerTextPng, strokePng] = await Promise.all([
-    generateInnerText({ fontPath, text: directedText, fill }),
-    generateStrokes(fontPath, directedText, strokes),
+    generateInnerText({ ...args, text: directedText, interlineSpacing }),
+    generateStrokes({ ...args, text: directedText, interlineSpacing }),
   ])
   if (strokePng === undefined) {
     return innerTextPng

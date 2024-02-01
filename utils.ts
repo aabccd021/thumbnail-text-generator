@@ -7,6 +7,7 @@ export const requestBody = b.object({
     'delagothicone.ttf',
     'rocknrollone.ttf',
   ]),
+  interlineSpacing: b.string().optional(),
   text: b.string(),
   fill: b.string(),
   vertical: b.boolean().optional(),
