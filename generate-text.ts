@@ -37,6 +37,7 @@ function generateStroke(args: {
     'convert',
     `-font "${args.fontPath}"`,
     '-background none',
+    '-fill none',
     `-pointsize 200`,
     '-kerning -25',
     '-interline-spacing -100',
