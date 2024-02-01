@@ -9,6 +9,7 @@ export const requestBody = b.object({
   ]),
   text: b.string(),
   fill: b.string(),
+  vertical: b.boolean().optional(),
   strokes: b.array(b.object({
     color: b.string(),
     width: b.number(),

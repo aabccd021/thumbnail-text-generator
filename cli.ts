@@ -1,5 +1,5 @@
 import * as fs from 'node:fs'
-import { requestBody } from './utils'
+import { RequestBody, requestBody } from './utils'
 import { generateTitle } from './generate-text'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
@@ -12,6 +12,18 @@ const main = async () => {
   const schemaPath = '/home/aabccd021/tmp/schema.json'
   await fs.promises.writeFile(schemaPath, schemaString)
   const inputJsonPath = `/home/aabccd021/tmp/input.json`
+  if (!fs.existsSync(inputJsonPath)) {
+    const example: RequestBody = {
+      text: 'Hello World',
+      font: 'zenantique.ttf',
+      fill: 'black',
+      strokes: [{
+        color: 'white',
+        width: 10,
+      }],
+    }
+    await fs.promises.writeFile(inputJsonPath, JSON.stringify(example, null, 2))
+  }
   const fileContent = await fs.promises.readFile(inputJsonPath, 'utf-8')
   const input: unknown = JSON.parse(fileContent)
   const request = await requestBody.parseAsync(input)
@@ -25,13 +37,6 @@ const main = async () => {
 
 // const main = async () => {
 //   const tmpDir = await fs.promises.mkdtemp('/tmp/thumbnail-generator-cli-')
-//   await fs.promises.writeFile(inputJsonPath, JSON.stringify({
-//     $schema: `file://${schemaPath}`,
-//     font: 'zenantique.ttf',
-//     text: 'foo',
-//     fill: 'red',
-//     strokes: [],
-//   }, null, 2))
 // }
 //
 void main()

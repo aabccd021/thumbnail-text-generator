@@ -27,17 +27,23 @@ async function cachedExec(key: string, extension: string, cmd: string): Promise<
   return cachePath
 }
 
-function generateStroke(fontPath: string, text: string, strokeParam: Stroke) {
+function generateStroke(args: {
+  fontPath: string
+  text: string
+  stroke: Stroke
+  vertical?: true
+}) {
   const cmd = [
     'convert',
-    `-font "${fontPath}"`,
+    `-font "${args.fontPath}"`,
     '-background none',
     `-pointsize 200`,
     '-kerning -25',
-    `-stroke ${strokeParam.color}`,
-    `-strokewidth ${strokeParam.width}`,
+    '-interline-spacing -100',
+    `-stroke ${args.stroke.color}`,
+    `-strokewidth ${args.stroke.width}`,
     '-gravity center',
-    `label:"${text}"`,
+    `label:"${args.text}"`,
   ]
     .filter(arg => arg !== '')
     .join(' ')
@@ -45,16 +51,21 @@ function generateStroke(fontPath: string, text: string, strokeParam: Stroke) {
   return cachedExec('generateStroke', 'png', cmd)
 }
 
-function generateInnerText(fontPath: string, text: string, fill: string) {
+function generateInnerText(args: {
+  fontPath: string
+  text: string
+  fill: string
+}) {
   const cmd = [
     'convert',
-    `-font "${fontPath}"`,
-    `-fill "${fill}"`,
+    `-font "${args.fontPath}"`,
+    `-fill "${args.fill}"`,
     '-background none',
     `-pointsize 200`,
     '-kerning -25',
+    '-interline-spacing -100',
     '-gravity center',
-    `label:"${text}"`,
+    `label:"${args.text}"`,
   ]
     .filter(arg => arg !== '')
     .join(' ')
@@ -84,6 +95,7 @@ type TitleArgs = {
   fontPath: string
   text: string
   fill: string
+  vertical?: boolean | undefined
   strokes: Stroke[]
 }
 
@@ -97,9 +109,9 @@ async function generateStrokes(
   if (outmostStroke === undefined) {
     return undefined
   }
-  let strokePng = await generateStroke(fontPath, text, outmostStroke)
+  let strokePng = await generateStroke({ fontPath, text, stroke: outmostStroke })
   for (const stroke of restStrokes) {
-    const innerStrokePng = await generateStroke(fontPath, text, stroke)
+    const innerStrokePng = await generateStroke({ fontPath, text, stroke })
     strokePng = await layerImages({
       bg: strokePng,
       fg: innerStrokePng,
@@ -110,10 +122,11 @@ async function generateStrokes(
 }
 
 export async function generateTitle(args: TitleArgs) {
-  const { fontPath, text, fill, strokes } = args
+  const { fontPath, text, fill, strokes, vertical } = args
+  const directedText = vertical === true ? text.split('').join('\n') : text
   const [innerTextPng, strokePng] = await Promise.all([
-    generateInnerText(fontPath, text, fill),
-    generateStrokes(fontPath, text, strokes),
+    generateInnerText({ fontPath, text: directedText, fill }),
+    generateStrokes(fontPath, directedText, strokes),
   ])
   if (strokePng === undefined) {
     return innerTextPng
