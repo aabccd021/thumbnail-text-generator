@@ -133,6 +133,9 @@
 
       apps.x86_64-linux.thumbnail-generator = mkApp {
         runPhase = ''
+          if [[ ! -f "/home/aabccd021/tmp/input.json" ]]; then
+            ${cli}/bin/generate-thumbnail.mjs --generateExample
+          fi
           echo "/home/aabccd021/tmp/input.json" | ${entr}/bin/entr ${cli}/bin/generate-thumbnail.mjs
         '';
       };
