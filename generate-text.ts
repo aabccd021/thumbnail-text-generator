@@ -2,7 +2,31 @@ import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
 import * as util from 'node:util'
 import * as childProcess from 'node:child_process'
-import { Stroke } from './utils'
+import * as b from 'zod'
+
+const requestBody = b.object({
+  $schema: b.string().optional(),
+  font: b.enum([
+    'zenantique.ttf',
+    'delagothicone.ttf',
+    'rocknrollone.ttf',
+  ]).optional(),
+  interlineSpacing: b.string().optional(),
+  text: b.string(),
+  fill: b.string().optional(),
+  vertical: b.boolean().optional(),
+  strokes: b.array(b.object({
+    color: b.string(),
+    width: b.number(),
+  })).optional(),
+})
+
+type RequestBody = b.infer<typeof requestBody>
+
+type Stroke = {
+  color: string
+  width: number
+}
 
 const execPromise = util.promisify(childProcess.exec)
 
@@ -28,7 +52,7 @@ async function cachedExec(key: string, extension: string, cmd: string): Promise<
 }
 
 function generateStroke(args: {
-  fontPath: string
+  font: string
   text: string
   stroke: Stroke
   interlineSpacing: string
@@ -36,7 +60,7 @@ function generateStroke(args: {
 }) {
   const cmd = [
     'convert',
-    `-font "${args.fontPath}"`,
+    `-font "${args.font}"`,
     '-background none',
     '-fill none',
     `-pointsize 200`,
@@ -54,14 +78,14 @@ function generateStroke(args: {
 }
 
 function generateInnerText(args: {
-  fontPath: string
+  font: string
   text: string
   fill: string
   interlineSpacing: string
 }) {
   const cmd = [
     'convert',
-    `-font "${args.fontPath}"`,
+    `-font "${args.font}"`,
     `-fill "${args.fill}"`,
     '-background none',
     `-pointsize 200`,
@@ -94,18 +118,9 @@ function layerImages(args: {
   return cachedExec('layerImages', 'png', cmd)
 }
 
-type TitleArgs = {
-  fontPath: string
-  text: string
-  fill: string
-  vertical?: boolean | undefined
-  strokes: Stroke[]
-  interlineSpacing?: string
-}
-
 async function generateStrokes(
   args: {
-    fontPath: string
+    font: string
     text: string
     strokes: Stroke[]
     interlineSpacing: string
@@ -128,12 +143,33 @@ async function generateStrokes(
   return strokePng
 }
 
-export async function generateTitle(args: TitleArgs) {
+export async function generateTitle(args: RequestBody, fontsDir: string) {
   const directedText = args.vertical === true ? args.text.split('').join('\n') : args.text
   const interlineSpacing = args.interlineSpacing ?? '-100'
+  const strokes: Stroke[] = args.strokes ?? [{
+    color: 'black',
+    width: 20,
+  }, {
+    color: 'white',
+    width: 20,
+  },
+  ]
+  const fill = args.fill ?? 'red'
+  const fontFamily = args.font ?? 'zenantique.ttf'
+  const font = `${fontsDir}/${fontFamily}`
   const [innerTextPng, strokePng] = await Promise.all([
-    generateInnerText({ ...args, text: directedText, interlineSpacing }),
-    generateStrokes({ ...args, text: directedText, interlineSpacing }),
+    generateInnerText({
+      ...args,
+      font,
+      fill,
+      text: directedText, interlineSpacing,
+    }),
+    generateStrokes({
+      ...args,
+      font,
+      strokes,
+      text: directedText, interlineSpacing,
+    }),
   ])
   if (strokePng === undefined) {
     return innerTextPng

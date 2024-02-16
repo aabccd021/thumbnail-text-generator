@@ -48,7 +48,7 @@ const generate = async () => {
     ...request,
     fontPath: `${fontsDir}/${request.font}`,
   }
-  const generateResultPath = await generateTitle(generateParams)
+  const generateResultPath = await generateTitle(generateParams, fontsDir)
   await fs.promises.copyFile(generateResultPath, '/home/aabccd021/tmp/out.png')
 }
 
