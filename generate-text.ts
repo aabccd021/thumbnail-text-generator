@@ -2,12 +2,7 @@ import * as crypto from 'node:crypto'
 import * as fs from 'node:fs'
 import * as util from 'node:util'
 import * as childProcess from 'node:child_process'
-import * as b from 'zod'
-
-const requestBody = b.object({
-  $schema: b.string().optional(),
-  font: b.enum([
-    'zenantique.ttf',
+import * as b from 'zod' const requestBody = b.object({ $schema: b.string().optional(), font: b.enum([ 'zenantique.ttf',
     'delagothicone.ttf',
     'rocknrollone.ttf',
   ]).optional(),
